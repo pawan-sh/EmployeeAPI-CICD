@@ -1,5 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using EmployeeAPI.Dtos;
 using EmployeeAPI.Models;
+using EmployeeAPI.Services;
+using Microsoft.AspNetCore.Mvc;
 
 namespace EmployeeAPI.Controllers
 {
@@ -7,48 +10,52 @@ namespace EmployeeAPI.Controllers
     [Route("api/[controller]")]
     public class EmployeeController : ControllerBase
     {
-        // In-memory list for demo purpose
-        private static readonly List<Employee> _employees = new();
+        private readonly IEmployeeService _service;
+        private readonly IMapper _mapper;
+
+        public EmployeeController(IEmployeeService service, IMapper mapper)
+        {
+            _service = service;
+            _mapper = mapper;
+        }
 
         [HttpGet]
-        public IActionResult GetAll() => Ok(_employees);
-
-        [HttpGet("{id:int}")]
-        public IActionResult Get(int id)
+        public async Task<IActionResult> GetAll()
         {
-            var employee = _employees.FirstOrDefault(e => e.Id == id);
-            return employee is null ? NotFound() : Ok(employee);
+            var employees = await _service.GetAllAsync();
+            return Ok(employees);
+        }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> Get(int id)
+        {
+            var employee = await _service.GetByIdAsync(id);
+            return employee == null ? NotFound() : Ok(employee);
         }
 
         [HttpPost]
-        public IActionResult Create(Employee employee)
+        public async Task<IActionResult> Create(EmployeeCreateDto dto)
         {
-            employee.Id = _employees.Count + 1;
-            _employees.Add(employee);
-            return CreatedAtAction(nameof(Get), new { id = employee.Id }, employee);
+            var employee = _mapper.Map<Employee>(dto);
+            var created = await _service.AddAsync(employee);
+
+            return CreatedAtAction(nameof(Get), new { id = created.Id }, created);
         }
 
-        [HttpPut("{id:int}")]
-        public IActionResult Update(int id, Employee updated)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(int id, EmployeeUpdateDto dto)
         {
-            var existing = _employees.FirstOrDefault(e => e.Id == id);
-            if (existing is null) return NotFound();
+            var updatedEmployee = _mapper.Map<Employee>(dto);
+            var result = await _service.UpdateAsync(id, updatedEmployee);
 
-            existing.Name = updated.Name;
-            existing.Department = updated.Department;
-            existing.Salary = updated.Salary;
-
-            return NoContent();
+            return result == null ? NotFound() : NoContent();
         }
 
-        [HttpDelete("{id:int}")]
-        public IActionResult Delete(int id)
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
         {
-            var employee = _employees.FirstOrDefault(e => e.Id == id);
-            if (employee is null) return NotFound();
-
-            _employees.Remove(employee);
-            return NoContent();
+            var deleted = await _service.DeleteAsync(id);
+            return deleted ? NoContent() : NotFound();
         }
     }
 }

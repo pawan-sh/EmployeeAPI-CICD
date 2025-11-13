@@ -1,3 +1,9 @@
+using EmployeeAPI.Data;
+using EmployeeAPI.Mappings;
+using EmployeeAPI.Repositories;
+using EmployeeAPI.Services;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 
 namespace EmployeeAPI
@@ -11,7 +17,20 @@ namespace EmployeeAPI
             // Add services
             builder.Services.AddControllers();
 
-            // Add Swagger/OpenAPI support
+            // Dependency Injection
+            builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
+            builder.Services.AddScoped<IEmployeeService, EmployeeService>();
+            builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
+
+
+
+
+            // Database
+            builder.Services.AddDbContext<EmployeeDbContext>(options =>
+                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+            // Swagger
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen(c =>
             {
@@ -25,19 +44,17 @@ namespace EmployeeAPI
 
             var app = builder.Build();
 
-            // Enable Swagger in all environments (for learning)
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "Employee API V1");
-                c.RoutePrefix = "swagger"; // open swagger at root URL
+                c.RoutePrefix = "swagger";
             });
 
             app.UseHttpsRedirection();
-
             app.UseAuthorization();
-
             app.MapControllers();
+            app.MapGet("/", () => Results.Redirect("/swagger"));
 
             app.Run();
         }
