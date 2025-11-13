@@ -2,14 +2,11 @@
 using EmployeeAPI.Dtos;
 using EmployeeAPI.Models;
 
-namespace EmployeeAPI.Mappings
+public class EmployeeMappingProfile : Profile
 {
-    public class EmployeeMappingProfile : Profile
+    public EmployeeMappingProfile()
     {
-        public EmployeeMappingProfile()
-        {
-            CreateMap<EmployeeCreateDto, Employee>();
-            CreateMap<EmployeeUpdateDto, Employee>();
-        }
+        CreateMap<Employee, EmployeeCreateDto>().ReverseMap();
+        CreateMap<Employee, EmployeeUpdateDto>().ReverseMap();
     }
 }

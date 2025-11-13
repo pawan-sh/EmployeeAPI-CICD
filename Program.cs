@@ -1,5 +1,5 @@
 using EmployeeAPI.Data;
-using EmployeeAPI.Mappings;
+//using EmployeeAPI.Mappings;
 using EmployeeAPI.Repositories;
 using EmployeeAPI.Services;
 using Microsoft.EntityFrameworkCore;
@@ -20,7 +20,7 @@ namespace EmployeeAPI
             // Dependency Injection
             builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
             builder.Services.AddScoped<IEmployeeService, EmployeeService>();
-            builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+            builder.Services.AddAutoMapper(typeof(EmployeeMappingProfile));
 
 
 
